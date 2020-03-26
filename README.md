@@ -1,3 +1,45 @@
+- [Overview](#overview)
+- [About me](#about-me)
+- [Philosophy](#philosophy)
+- [Frontend](#frontend)
+  * [Web](#web)
+  * [Apps](#apps)
+  * [Backend for frontend (BFF)](#backend-for-frontend--bff-)
+- [Backend](#backend)
+  * [Shared common library](#shared-common-library)
+  * [Logging](#logging)
+  * [Serverless](#serverless)
+    + [Pros](#pros)
+    + [Cons](#cons)
+- [Data](#data)
+  * [Ownership](#ownership)
+  * [Versioning](#versioning)
+  * [Data persistence](#data-persistence)
+  * [Retrieval](#retrieval)
+    + [Pagination](#pagination)
+  * [Data warehouse](#data-warehouse)
+    + [Best practices](#best-practices)
+- [Caching](#caching)
+- [Tracing](#tracing)
+- [Protocols and communication patterns](#protocols-and-communication-patterns)
+  * [API definitions](#api-definitions)
+  * [API design](#api-design)
+- [Access control](#access-control)
+  * [Multi tenancy](#multi-tenancy)
+- [Testing](#testing)
+  * [Principles](#principles)
+  * [Load test](#load-test)
+  * [Code hygiene](#code-hygiene)
+- [Devops](#devops)
+  * [Philosophy](#philosophy-1)
+  * [CI/CD](#ci-cd)
+  * [Deployment](#deployment)
+  * [Monitoring](#monitoring)
+- [Theories of computing](#theories-of-computing)
+  * [Complexity of algorithms](#complexity-of-algorithms)
+  * [Concurrency](#concurrency)
+- [Data science and machine learning](#data-science-and-machine-learning)
+
 # Overview
 
 A checklist of tech considerations when designing fullstack architecture with [SRE](https://en.wikipedia.org/wiki/Site_Reliability_Engineering) in mind.
@@ -55,7 +97,7 @@ Since the list is heavily biased towards my tech background, here's a summary of
 
 * [ReactNative](https://reactnative.dev/)
 * [Flutter](https://flutter.dev/)
-* Native
+* Native language (Java or Swift)
 
 ## Backend for frontend (BFF)
 
@@ -68,7 +110,13 @@ Usages:
 * [OAuth 2 authorization code flow](https://auth0.com/docs/flows/concepts/auth-code)
 * Special protocol (e.g., websocket)
 
-# Shared common library
+# Backend
+
+* Follow [the 12 factor app](https://12factor.net/)
+* [SOLID](https://en.wikipedia.org/wiki/SOLID)
+* Coordination with [leader election](https://en.wikipedia.org/wiki/Leader_election)
+
+## Shared common library
 
 The philosophy is to abstract common functionality into a shared layer for better governance and easier upgrades.
 
@@ -85,12 +133,6 @@ The philosophy is to abstract common functionality into a shared layer for bette
 * Cache library
 * Logging
 * Metrics
-
-# Backend
-
-* Follow [the 12 factor app](https://12factor.net/)
-* [SOLID](https://en.wikipedia.org/wiki/SOLID)
-* Coordination with [leader election](https://en.wikipedia.org/wiki/Leader_election)
 
 ## Logging
 
@@ -146,7 +188,7 @@ The philosophy is to abstract common functionality into a shared layer for bette
     * A version column: good for management, bad for indexing and possible hot partition.
 * If old version needs to be migrated to new version, consider a tool like [AWS Data Pipeline](https://aws.amazon.com/datapipeline/faqs/).
 
-## Storage 
+## Data persistence 
 
 * [SQL](https://en.wikipedia.org/wiki/SQL)
     * Pros
@@ -205,7 +247,7 @@ The DW therefore needs to handle them correctly.  [Columnar storage](https://aws
 * Cache eviction: prevent out of memory issue.  There is a number of [strategies](https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)), with [LRU](https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)) being the most popular.
 * Cache invalidation
     * time-to-live (TTL)
-    * Message driven invalidation
+    * Event driven invalidation
 
 # Tracing
 
@@ -255,6 +297,8 @@ This is relevant for SaaS systems, where multiple users/customers/partners share
 
 [Data segregation](https://docs.microsoft.com/en-us/azure/sql-database/saas-tenancy-app-design-patterns) is the most common technique used.
 
+Infrastructure segration does not scale well.
+
 # Testing
 
 https://martinfowler.com/articles/practical-test-pyramid.html
@@ -269,12 +313,16 @@ https://martinfowler.com/articles/practical-test-pyramid.html
 * Make test data identifiable.  Test data should never intefere with real data.
 * Not be afraid to run test in production.  This requires building application with testability in mind.
 
-## [Load test](https://en.wikipedia.org/wiki/Software_performance_testing#Load_testing)
+## Load test
 
 * Scenario description
     * Number of users
     * Scenario of each user
     * Ramp up/cool down period
+* Metrics
+    * Response time
+    * Throughput
+    * Error rate
 * Monitoring: make sure the load generator isn't stressed out, by monitoring its CPU/memory/network
 * Scaling: runing multiple instances, and aggregate the logs.
 * Tools
@@ -339,8 +387,9 @@ https://martinfowler.com/articles/practical-test-pyramid.html
 
 * Models of concurrency
     * [Thread](https://en.wikipedia.org/wiki/Thread_(computing))
+        * [Locks, mutex, semaphor](https://stackoverflow.com/questions/2332765/lock-mutex-semaphore-whats-the-difference)
     * [Event loop](https://en.wikipedia.org/wiki/Event_loop) + [Asynchronous IO](https://en.wikipedia.org/wiki/Asynchronous_I/O)
-    * [Message passing](https://en.wikipedia.org/wiki/Message_passing) and [CSP](https://en.wikipedia.org/wiki/Communicating_sequential_processes)
+    * [Message passing](https://en.wikipedia.org/wiki/Message_passing) and [CSP](https://en.wikipedia.org/wiki/Communicating_sequential_processes) (including [actor systems](https://en.wikipedia.org/wiki/Actor_model))
 * Common errors
     * [Deadlock](https://en.wikipedia.org/wiki/Deadlock)
     * [Race condition](https://en.wikipedia.org/wiki/Race_condition#Software)
@@ -351,7 +400,9 @@ https://martinfowler.com/articles/practical-test-pyramid.html
         * [BASE](https://en.wikipedia.org/wiki/Eventual_consistency)
         * **Warning** not suitable for systems requiring [ACID](https://en.wikipedia.org/wiki/ACID), e.g., bank account transfer.
     * [Leader election](https://en.wikipedia.org/wiki/Leader_election)
-    * [Sharding]()
+    * [Sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture))
     * [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem)
 
 # Data science and machine learning
+
+TBC
