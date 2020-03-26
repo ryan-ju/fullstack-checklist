@@ -263,10 +263,12 @@ The DW therefore needs to handle them correctly.  [Columnar storage](https://aws
 
 # Protocols and communication patterns
 
+## Types of communication
 * Request-response
 * [Long polling](https://en.wikipedia.org/wiki/Push_technology#Long_polling)
 * [Websocket](https://en.wikipedia.org/wiki/WebSocket)
 * [Task queue (aka. message queue)](https://taskqueues.com/)
+* Broadcast
 
 ## API definitions
 
@@ -278,12 +280,26 @@ The DW therefore needs to handle them correctly.  [Columnar storage](https://aws
 * [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift), less popular
 * [Avro](https://en.wikipedia.org/wiki/Apache_Avro), less popular
 
+SDKs for different languages can be generated from API definitions.
+
 ## API design
 
+* Implement [API gateway](https://apigee.com/about/cp/api-gateway) to handle:
+    * API routing
+    * Protocol translation (e.g., REST to Protobuf)
+    * Authentication
+    * Logging/metrics
+    * Usage auditing
 * Limit the usage of [polymorphic](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) payload (if payload is different in structure, better to make it a different API)
 * Error response is part of the design, not an after thought.
 * Standardise and regulate the use of error codes.  Adhere to HTTP status code definitions.
 * Treat HTTP 5xx status as system failures that require intervention (i.e., don't use them lightly).
+
+## Failure and recovery
+
+* [Circuit breaker](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern)
+* [Exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff)
+* [Rate limit](https://en.wikipedia.org/wiki/Rate_limiting)
 
 # Access control
 
