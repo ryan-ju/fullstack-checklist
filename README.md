@@ -7,6 +7,8 @@
   * [Backend for frontend (BFF)](#backend-for-frontend--bff-)
 - [Backend](#backend)
   * [Shared common library](#shared-common-library)
+  * [Configuration and secrets](#configuration-and-secrets)
+  * [Feature flag](#feature-flag)
   * [Logging](#logging)
   * [Serverless](#serverless)
     + [Pros](#pros)
@@ -22,19 +24,24 @@
 - [Caching](#caching)
 - [Tracing](#tracing)
 - [Protocols and communication patterns](#protocols-and-communication-patterns)
+  * [Types of communication](#types-of-communication)
   * [API definitions](#api-definitions)
   * [API design](#api-design)
+  * [Service discovery](#service-discovery)
+  * [Failure and recovery](#failure-and-recovery)
 - [Access control](#access-control)
   * [Multi tenancy](#multi-tenancy)
 - [Testing](#testing)
   * [Principles](#principles)
   * [Load test](#load-test)
   * [Code hygiene](#code-hygiene)
-- [Devops](#devops)
+- [DevOps](#devops)
   * [Philosophy](#philosophy-1)
   * [CI/CD](#ci-cd)
   * [Deployment](#deployment)
   * [Monitoring](#monitoring)
+- [QA](#qa)
+  * [Responsibility](#responsibility)
 - [Theories of computing](#theories-of-computing)
   * [Complexity of algorithms](#complexity-of-algorithms)
   * [Concurrency](#concurrency)
@@ -72,7 +79,7 @@ Since the list is heavily biased towards my tech background, here's a summary of
 * Centralisation isn't evil, chaos is
 * [Simplicity is the ultimate sophistication](https://www.fastcompany.com/1790791/steve-jobs-biographer-apple-founder-was-driven-simplicity-mystical-thinking-and-occasional-l)
 * [Exceptions are not exceptional](https://medium.com/continuousdelivery/exceptional-exceptions-5110671b3028), they're part of the system and part of the story
-* Make choices based on problem, not on hype or "I like X"
+* Make choices based on problem, not on hype or bias
 
 # Frontend
 
@@ -133,6 +140,27 @@ The philosophy is to abstract common functionality into a shared layer for bette
 * Cache library
 * Logging
 * Metrics
+
+## Configuration and secrets
+
+* Configuration files should live in the same repository as code.
+* Secrets should go into a secret manager.  Deployment infrastructure should inject the secrets at run time.
+* Allow secret overriding using environment variables (for running locally).
+
+## Feature flag
+
+**Definition**: a [feature flag](https://martinfowler.com/articles/feature-toggles.html#ATogglingTale) is a toggle that a program uses to decide its behaviour.  This is useful when rolling out new features gradually.
+
+A feature flag system has these concepts:
+
+* Flag value (aka. toggle value): the value that a program gets for a feature flag
+* Rule: a rule is associated with a flag, and it maps parameters to a flag value.  E.g., a rule can map all users with age < 18 to flag value `under-18`.
+* Feature management service: service that stores flags and rules.  This service has admin APIs or UI to configure the flags and rules.  E.g., [LaunchDarkly](https://launchdarkly.com/).
+
+
+> Make an effort to keep the number of feature flags low.  
+
+> Make a plan to remove unnecessary feature flags.  A feature flag is no longer needed if 100% of the traffic is using the new feature.
 
 ## Logging
 
@@ -295,6 +323,15 @@ SDKs for different languages can be generated from API definitions.
 * Standardise and regulate the use of error codes.  Adhere to HTTP status code definitions.
 * Treat HTTP 5xx status as system failures that require intervention (i.e., don't use them lightly).
 
+## Service discovery
+
+This ensures that services and APIs are addressable in the infrastructure (by a unique and stable name).
+
+* [Overlay networks](https://medium.com/google-cloud/understanding-kubernetes-networking-pods-7117dd28727)
+* Address: an abstract concept of where data should be sent, e.g., IP address
+* Routers: interprets the address and sends traffic to the correct endpoint
+* DNS server: specialised service that resolves service name to address
+
 ## Failure and recovery
 
 * [Circuit breaker](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern)
@@ -357,7 +394,7 @@ https://martinfowler.com/articles/practical-test-pyramid.html
 * Encourage the use of IDEs
 * [Reproducible builds](https://en.wikipedia.org/wiki/Reproducible_builds): Use a package manager that can lock dependency versions
 
-# Devops
+# DevOps
 
 ## Philosophy
 
@@ -391,6 +428,20 @@ https://martinfowler.com/articles/practical-test-pyramid.html
 * [Tracing](#tracing)
 * Service dependency graph based on traffic and healthcheck.  This makes service grade/decommission safer
 * Service metrics and dashboard
+
+# QA
+
+> QA > writing test
+
+> QA is part of DevOps, not a separate team
+
+## Responsibility
+
+* Provide tooling/library/framework/process to make low level testing self-serviced by developers (unit tests, component tests, load tests).
+* Develop and own end user and high level tests, from an organisation or company perspective.
+* Test automation, reducing manual intervention.
+* Standardise test methodology across teams.
+* Reduce noise from fragile tests, false positives, long-time-known bugs, to prevent distraction and increase sensitivity to true positives across the company.  
 
 # Theories of computing
 
