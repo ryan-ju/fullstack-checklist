@@ -101,7 +101,7 @@ Since the list is heavily biased towards my tech background, here's a summary of
 
 ## Backend for frontend (BFF)
 
-One BFF per frontend app.
+One [BFF](https://samnewman.io/patterns/architectural/bff/) per frontend app.
 
 Usages:
 * Resource intensive tasks
