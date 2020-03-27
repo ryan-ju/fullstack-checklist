@@ -81,6 +81,17 @@ Since the list is heavily biased towards my tech background, here's a summary of
 * [Exceptions are not exceptional](https://medium.com/continuousdelivery/exceptional-exceptions-5110671b3028), they're part of the system and part of the story
 * Make choices based on problem, not on hype or bias
 
+# Governance structure
+
+[Governance](https://www.growthbusiness.co.uk/why-governance-must-be-a-priority-for-startups-2550207/) is concerned with
+* Ownership of components (e.g., products, services, pieces of infrastructure, codes)
+* Communication patterns across teams/components
+* Technical guidance and conflict resolution
+
+The goal is to build a **lean** and **efficient** engineering team to support business aspirations (unless engineering is the business, the priority should be business).
+
+**Law of engineering**: engineering team should not scale linearly with business growth.
+
 # Frontend
 
 ## Web
@@ -216,8 +227,9 @@ A feature flag system has these concepts:
     * A version column: good for management, bad for indexing and possible hot partition.
 * If old version needs to be migrated to new version, consider a tool like [AWS Data Pipeline](https://aws.amazon.com/datapipeline/faqs/).
 
-## Data persistence 
+## Database
 
+### Types of database
 * [SQL](https://en.wikipedia.org/wiki/SQL)
     * Pros
         * Joint query is easy
@@ -237,11 +249,25 @@ A feature flag system has these concepts:
 
 SQL DB usually scales computing and storage together, which can be wasteful.  An exception is [AWS Aurora](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.html) which scales them independenly.
 
+NoSQL uses [sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture)) to achieve high scalability.
+
 See [concurrency](#concurrency) for discussion on transaction and data consistency.
 
-## Retrieval
+### Best practices
+
+* For microservices, DB should be treated more like working memory than long term source of truth (which should be your data warehouse instead).
+* Prefer NoSQL than SQL.
+* Avoid [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping)(e.g., [Hibernate](https://hibernate.org/), [SQLAlchemy](https://docs.sqlalchemy.org/en/13/)).  They make your code bloated, less clear and fragile.
+* Always define a DAO layer in application to expose an interface customised to the business logic.  This reduces coupling of business logic to DB, and improves testability.
+* Implement data (un)marshalling in the DAO.
+
+### Query
 
 When complex query (multi-fields, condition filter, pagination, sorting, etc) is needed, it's best to keep indexes in a search engine.
+
+This also makes it possible to use a simple DB (e.g., NoSQL).
+
+Examples:
 
 * [Elasticsearch](https://en.wikipedia.org/wiki/Elasticsearch): index search
 * [Solr](https://lucene.apache.org/solr/): text search
@@ -257,8 +283,24 @@ The data is usually structured, with repeated and nested fields (e.g., JSON, YAM
 
 The DW therefore needs to handle them correctly.  [Columnar storage](https://aws.amazon.com/nosql/columnar/) following [Google Dremel whitepaper](https://blog.twitter.com/engineering/en_us/a/2013/dremel-made-simple-with-parquet.html) is ideal (e.g., [Parquet](https://en.wikipedia.org/wiki/Apache_Parquet) format).
 
+### What goes into DW
+
+* [Trasactional data](https://www.nuwavesolutions.com/snapshot-fact-tables/) and [Event sourcing](https://microservices.io/patterns/data/event-sourcing.html): model data change as events, and store the events in DW.  Use cases:
+    * user activity analysis
+    * trend detection
+    * usage tracking
+* [Snapshot data](https://www.nuwavesolutions.com/snapshot-fact-tables/): point-in-time data.  Use cases:
+    * account balance
+    * inventry stock level
+    
+Snapshot data may be collected in several ways:
+
+* exported from service DB
+* constructed by playing back transactional data over last snapshot
+
 ### Best practices
 
+* Have a [data pipeline](https://www.dremio.com/what-is-a-data-pipeline/) architecture as part of infrastructure.
 * Define schema with version for all data types, with validation rules
 * Validate incoming data before storing
 * Common schema fields:
@@ -269,6 +311,7 @@ The DW therefore needs to handle them correctly.  [Columnar storage](https://aws
     * Environment
     * Dedupe ID
     * Is it test?  (without this, test and real data is mingled and it's painful to separate them later)
+* Don't serve data from DW directly.  Instead, use a [pipeline](https://www.alooma.com/blog/what-is-a-data-pipeline) to [ETL](https://www.alooma.com/blog/what-is-etl) the data into a service, then serve it using APIs.
 
 # Caching
 
@@ -406,6 +449,23 @@ https://martinfowler.com/articles/practical-test-pyramid.html
 * Developers should self-service
 * Pager is the last line of escalation.  Use it sparingly.
 
+## Centralisation
+
+Components with shared ownership should be considered a piece of infrastructure, and managed in a single place (instead of distributed across repositories/codebases).
+
+Examples:
+
+* Service API definitions (service provider != API owner)
+* Message schema definitions
+* Documentation 
+* Data in data warehouse
+
+## Tooling
+
+[CLI](https://en.wikipedia.org/wiki/Command-line_interface) and scripts should be the prefered way of automation.
+
+They should be well documented, versioned and published for easy installation.  Example: [goreleaser](https://github.com/goreleaser/goreleaser)
+
 ## CI/CD
 
 * [Circle CI](https://circleci.com/)
@@ -461,6 +521,7 @@ https://martinfowler.com/articles/practical-test-pyramid.html
     * [Deadlock](https://en.wikipedia.org/wiki/Deadlock)
     * [Race condition](https://en.wikipedia.org/wiki/Race_condition#Software)
 * Distributed systems
+    * [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem)
     * [Concensus algorithms](https://en.wikipedia.org/wiki/Consensus_algorithm): [Paxos](https://en.wikipedia.org/wiki/Paxos_(computer_science)), [Raft](https://en.wikipedia.org/wiki/Raft_(computer_science))
     * [Eventual consistency](https://en.wikipedia.org/wiki/Eventual_consistency)
         * [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol)
@@ -468,7 +529,7 @@ https://martinfowler.com/articles/practical-test-pyramid.html
         * **Warning** not suitable for systems requiring [ACID](https://en.wikipedia.org/wiki/ACID), e.g., bank account transfer.
     * [Leader election](https://en.wikipedia.org/wiki/Leader_election)
     * [Sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture))
-    * [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem)
+    * [LSM](https://en.wikipedia.org/wiki/Log-structured_merge-tree): used by most NoSQL DB to ensure no data loss
 
 # Data science and machine learning
 
