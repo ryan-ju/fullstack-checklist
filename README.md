@@ -103,7 +103,7 @@ The goal is to build a **lean** and **efficient** engineering team to support bu
 ## Web
 * Language: [Typescript](https://www.typescriptlang.org/) + [ES6](https://www.w3schools.com/js/js_es6.asp).  Full stop.
 * Frameworks: 
-    * [Reace >= 0.14]() with [functional components](https://hackernoon.com/react-stateless-functional-components-nine-wins-you-might-have-overlooked-997b0d933dbc) 
+    * [React >= 0.14]() with [functional components](https://hackernoon.com/react-stateless-functional-components-nine-wins-you-might-have-overlooked-997b0d933dbc) 
     * Get started with [create-react-app](https://create-react-app.dev/docs/getting-started/)
     * [hooks](https://reactjs.org/docs/hooks-intro.html) and [context](https://reactjs.org/docs/context.html), and when it gets too difficult, [redux](https://blog.isquaredsoftware.com/2018/03/redux-not-dead-yet/)
     * [Jest](https://jestjs.io/) > [Mocha](https://mochajs.org/)
